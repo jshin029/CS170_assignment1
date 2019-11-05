@@ -70,6 +70,26 @@ def MTHeuristic(puzzle, goalState):
                                     #the goal puzzle, then increment the heurisitc/misplacedTiles
     return misplacedTiles - 1 #subtract the misplacedTiles because the function above counts the empty tile as well
 
+def MHDHeuristic(puzzle, goalState):
+    totalMoves = 0
+    col = len(puzzle[0])
+    row = len(puzzle)
+
+    if puzzle == goalState:
+        return 0
+
+    for i in range(col):
+        for j in range(row):
+            if puzzle[i][j] != goalState[i][j]:
+                numpPuzzle = np.array(goalState)
+                findSpace = np.where(numpPuzzle==puzzle[i][j])
+
+                x = findSpace[0][0]
+                y = findSpace[1][0]
+                
+                totalMoves += abs(i - x) + abs(j - y)
+
+    return totalMoves
 
 def aStarMTH(puzzle, goalState):
     #A* with the Misplaced Tile heuristic
@@ -143,13 +163,7 @@ def aStarMTH(puzzle, goalState):
 
         numExpansions += 1
 
-
-
-    # while not puzzleQ.empty():
-    #     currentPuzzle = puzzleQ.get()
-    #     numpPuzzle = np.array(currentPuzzle)
-    #     findSpace = np.where(numpPuzzle==0)
-
+#def aStarMD(puzzle, goalState):
 
 
 # function general-search(problem, QUEUEING-FUNCTION)
@@ -169,29 +183,10 @@ def makePuzzle():
     # row3 = input("Enter the third row, use space or tabs between numbers: ")
 
 def main():
-    puzzle = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
+    puzzle = [[3, 2, 8], [4, 5, 6], [7, 1, 0]]
     goalState = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
-    x = 0
-    y = 2
-    aStarMTH(puzzle, goalState)
-    #uniformCostSearch(puzzle, goalState)
-    # heap = []
-    # heapq.heapify(heap)
-    # heapq.heappush(heap, (1, 2, [1, 2, 3, 4]))
-    # heapq.heappush(heap, (3, 2, [2, 4, 1, 2]))
-    # heapq.heappush(heap, (2, 2, [1, 4, 1, 2]))
-    # heapq.heappush(heap, (1, 2, [1, 4, 1, 2]))
-    #
-    #
-    # print(heapq.heappop(heap))
-    # print(heapq.heappop(heap))
-    # print(heapq.heappop(heap))
-    # print(heapq.heappop(heap))
-
-
-
-
-
+    #aStarMTH(puzzle, goalState)
+    print MHDHeuristic(puzzle, goalState)
 
 
 if __name__ == "__main__":
