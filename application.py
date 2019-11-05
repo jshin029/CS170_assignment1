@@ -60,12 +60,15 @@ def MTHeuristic(puzzle, goalState):
     col = len(puzzle[0])
     row = len(puzzle)
 
+    if puzzle == goalState:
+        return 0
+
     for i in range(col):
         for j in range(row):
             if puzzle[i][j] != goalState[i][j]:
                 misplacedTiles += 1 #if the position in the puzzle does not match the one in
                                     #the goal puzzle, then increment the heurisitc/misplacedTiles
-    return misplacedTiles
+    return misplacedTiles - 1 #subtract the misplacedTiles because the function above counts the empty tile as well
 
 
 def aStarMTH(puzzle, goalState):
@@ -83,9 +86,14 @@ def aStarMTH(puzzle, goalState):
     while len(heap) != 0:
         currentNode = heapq.heappop(heap)
         currentPuzzle = currentNode[2]
-        currentDepth = currentNode[1] + 1 #add 1 because we moved on to the child node so depth increases
-        currentF_N = currentNode[0]
-        numExpansions += 1
+        if currentPuzzle == puzzle:
+            currentDepth = currentNode[1] #if the node in the queue is the root node then depth should be 0
+        else:
+            currentDepth = currentNode[1] + 1 #add 1 because we moved on to the child node so depth increases
+        currentH_N = MTHeuristic(currentPuzzle, goalState)
+
+        print "The best state to expand with a: g(n) = ", currentDepth, " and h(n) = ", currentH_N, " is..."
+        print currentPuzzle
 
         numpPuzzle = np.array(currentPuzzle)
         findSpace = np.where(numpPuzzle==0)
@@ -95,8 +103,8 @@ def aStarMTH(puzzle, goalState):
 
 
         if currentPuzzle == goalState:
-            print("number of expansions: ", numExpansions)
-            print("depth of goal state: ", currentDepth)
+            print "number of expansions: ", numExpansions
+            print "depth of goal state: ", currentDepth
             return currentPuzzle
 
         #enqueue the expanded child nodes
@@ -104,7 +112,7 @@ def aStarMTH(puzzle, goalState):
         if (x - 1) >= 0:
             temp = copy.deepcopy(currentPuzzle)
             temp[x][y], temp[x-1][y] = temp[x-1][y], temp[x][y]
-            F_N = MTHeuristic(currentPuzzle, goalState)
+            F_N = MTHeuristic(temp, goalState)
             newF_N = F_N + currentDepth
             heapq.heappush(heap, (newF_N, currentDepth, temp))
 
@@ -113,7 +121,7 @@ def aStarMTH(puzzle, goalState):
         if (x + 1) < row:
             temp = copy.deepcopy(currentPuzzle)
             temp[x][y], temp[x+1][y] = temp[x+1][y], temp[x][y]
-            F_N = MTHeuristic(currentPuzzle, goalState)
+            F_N = MTHeuristic(temp, goalState)
             newF_N = F_N + currentDepth
             heapq.heappush(heap, (newF_N, currentDepth, temp))
 
@@ -121,7 +129,7 @@ def aStarMTH(puzzle, goalState):
         if (y - 1) >= 0:
             temp = copy.deepcopy(currentPuzzle)
             temp[x][y], temp[x][y-1] = temp[x][y-1], temp[x][y]
-            F_N = MTHeuristic(currentPuzzle, goalState)
+            F_N = MTHeuristic(temp, goalState)
             newF_N = F_N + currentDepth
             heapq.heappush(heap, (newF_N, currentDepth, temp))
 
@@ -129,9 +137,11 @@ def aStarMTH(puzzle, goalState):
         if (y + 1) < row:
             temp = copy.deepcopy(currentPuzzle)
             temp[x][y], temp[x][y+1] = temp[x][y+1], temp[x][y]
-            F_N = MTHeuristic(currentPuzzle, goalState)
+            F_N = MTHeuristic(temp, goalState)
             newF_N = F_N + currentDepth
             heapq.heappush(heap, (newF_N, currentDepth, temp))
+
+        numExpansions += 1
 
 
 
@@ -159,7 +169,7 @@ def makePuzzle():
     # row3 = input("Enter the third row, use space or tabs between numbers: ")
 
 def main():
-    puzzle = [[1, 5, 2], [4, 0, 3], [7, 8, 6]]
+    puzzle = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
     goalState = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
     x = 0
     y = 2
