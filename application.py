@@ -3,16 +3,32 @@ import copy
 import numpy as np
 import heapq
 
+# function general-search(problem, QUEUEING-FUNCTION)
+# nodes = MAKE-QUEUE(MAKE-NODE(problem.INITIAL-STATE))
+# loop do
+#  if EMPTY(nodes) then return "failure"
+#    node = REMOVE-FRONT(nodes)
+#  if problem.GOAL-TEST(node.STATE) succeeds then return node
+#     nodes = QUEUEING-FUNCTION(nodes, EXPAND(node, problem.OPERATORS))
+#  end
+
 def uniformCostSearch(puzzle, goalState):
     col = len(puzzle[0])
     row = len(puzzle)
     #obtain dimensions of puzzle
 
     depth = 0
+    maxQ = 0
+    expanded = 0
     puzzleQ = queue.Queue()
     puzzleQ.put(puzzle)
 
     while not puzzleQ.empty():
+        if maxQ < puzzleQ.qsize():
+            maxQ = puzzleQ.qsize()
+
+        depth += 1
+
         currentPuzzle = puzzleQ.get()
         numpPuzzle = np.array(currentPuzzle)
         findSpace = np.where(numpPuzzle==0)
@@ -20,41 +36,38 @@ def uniformCostSearch(puzzle, goalState):
         index_row = findSpace[0][0]
         index_col = findSpace[1][0]
 
-        #check if space can move up
-        if (index_row - 1) >= 0:
-            temp = copy.deepcopy(currentPuzzle)
-            temp[index_row][index_col], temp[index_row-1][index_col] = temp[index_row-1][index_col], temp[index_row][index_col]
-            if temp == goalState:
-                print depth + 1
-                return
-            puzzleQ.put(temp)
-
-        #check if space can move down
-        if (index_row + 1) < row:
-            temp = copy.deepcopy(currentPuzzle)
-            temp[index_row][index_col], temp[index_row+1][index_col] = temp[index_row+1][index_col], temp[index_row][index_col]
-            if temp == goalState:
-                print depth
-                return
-            puzzleQ.put(temp)
+        if currentPuzzle == goalState:
+            print "maximum queue size: ", maxQ
+            return
 
         #check if space can move left
         if (index_col - 1) >= 0:
+            expanded += 1
             temp = copy.deepcopy(currentPuzzle)
             temp[index_row][index_col], temp[index_row][index_col-1] = temp[index_row][index_col-1], temp[index_row][index_col]
-            if temp == goalState:
-                print depth
-                return
             puzzleQ.put(temp)
 
         #check if space can move right
         if (index_col + 1) < row:
+            expanded += 1
             temp = copy.deepcopy(currentPuzzle)
             temp[index_row][index_col], temp[index_row][index_col+1] = temp[index_row][index_col+1], temp[index_row][index_col]
-            if temp == goalState:
-                print depth
-                return
             puzzleQ.put(temp)
+
+        #check if space can move up
+        if (index_row - 1) >= 0:
+            expanded += 1
+            temp = copy.deepcopy(currentPuzzle)
+            temp[index_row][index_col], temp[index_row-1][index_col] = temp[index_row-1][index_col], temp[index_row][index_col]
+            puzzleQ.put(temp)
+
+        #check if space can move down
+        if (index_row + 1) < row:
+            expanded += 1
+            temp = copy.deepcopy(currentPuzzle)
+            temp[index_row][index_col], temp[index_row+1][index_col] = temp[index_row+1][index_col], temp[index_row][index_col]
+            puzzleQ.put(temp)
+
 
 def MTHeuristic(puzzle, goalState):
     misplacedTiles = 0
@@ -104,21 +117,28 @@ def aStar(puzzle, goalState, heuristic):
     #obtain dimensions of puzzle
     heap = []
     depth = 0
-    F_N = heuristic(puzzle, goalState)
+    maxQ = 0
     heapq.heapify(heap)
+    F_N = heuristic(puzzle, goalState)
     heapq.heappush(heap, (F_N, depth, puzzle))
 
     while len(heap) != 0:
+        if maxQ < len(heap):
+            maxQ = len(heap)
+
         currentNode = heapq.heappop(heap)
         currentPuzzle = currentNode[2]
-        if currentPuzzle == puzzle:
-            currentDepth = 0 #if the node in the queue is the root node then depth should be 0
-        else:
-            currentDepth = currentNode[1]+1 #add 1 because we moved on to the child node so depth increases
+        # if currentPuzzle == puzzle:
+        #     currentDepth = 0 #if the node in the queue is the root node then depth should be 0
+        # else:
+        currentDepth = currentNode[1]+1 #add 1 because we moved on to the child node so depth increases
         currentH_N = heuristic(currentPuzzle, goalState)
 
         print "The best state to expand with a: g(n) = ", currentDepth, " and h(n) = ", currentH_N, " is..."
-        print currentPuzzle
+        print currentPuzzle[0]
+        print currentPuzzle[1]
+        print currentPuzzle[2], "Expanding this node..."
+        print "\n"
 
         numpPuzzle = np.array(currentPuzzle)
         findSpace = np.where(numpPuzzle==0)
@@ -128,26 +148,14 @@ def aStar(puzzle, goalState, heuristic):
 
 
         if currentPuzzle == goalState:
-            print "number of expansions: ", numExpansions
-            print "depth of goal state: ", currentDepth
+            print "Goal!!"
+            print "\n"
+            print "To solve this problem the search algorithm expanded a total of", numExpansions, " nodes"
+            print "The maximum number of nodes in the queue at any one time was ", maxQ,
+            print "The depth of the goal node was ", currentDepth
             return currentPuzzle
 
         #enqueue the expanded child nodes
-        #check if space can move up
-        if (index_row - 1) >= 0:
-            temp = copy.deepcopy(currentPuzzle)
-            temp[index_row][index_col], temp[index_row-1][index_col] = temp[index_row-1][index_col], temp[index_row][index_col]
-            F_N = heuristic(temp, goalState)
-            newF_N = F_N + currentDepth
-            heapq.heappush(heap, (newF_N, currentDepth, temp))
-
-        #check if space can move down
-        if (index_row + 1) < row:
-            temp = copy.deepcopy(currentPuzzle)
-            temp[index_row][index_col], temp[index_row+1][index_col] = temp[index_row+1][index_col], temp[index_row][index_col]
-            F_N = heuristic(temp, goalState)
-            newF_N = F_N + currentDepth
-            heapq.heappush(heap, (newF_N, currentDepth, temp))
 
         #check if space can move left
         if (index_col - 1) >= 0:
@@ -165,6 +173,22 @@ def aStar(puzzle, goalState, heuristic):
             newF_N = F_N + currentDepth
             heapq.heappush(heap, (newF_N, currentDepth, temp))
 
+        #check if space can move up
+        if (index_row - 1) >= 0:
+            temp = copy.deepcopy(currentPuzzle)
+            temp[index_row][index_col], temp[index_row-1][index_col] = temp[index_row-1][index_col], temp[index_row][index_col]
+            F_N = heuristic(temp, goalState)
+            newF_N = F_N + currentDepth
+            heapq.heappush(heap, (newF_N, currentDepth, temp))
+
+        #check if space can move down
+        if (index_row + 1) < row:
+            temp = copy.deepcopy(currentPuzzle)
+            temp[index_row][index_col], temp[index_row+1][index_col] = temp[index_row+1][index_col], temp[index_row][index_col]
+            F_N = heuristic(temp, goalState)
+            newF_N = F_N + currentDepth
+            heapq.heappush(heap, (newF_N, currentDepth, temp))
+
         numExpansions += 1
 
 #def makePuzzle():
@@ -174,11 +198,72 @@ def aStar(puzzle, goalState, heuristic):
     # row3 = input("Enter the third row, use space or tabs between numbers: ")
 
 def main():
-    puzzle = [[1, 2, 3], [4, 0, 6], [7, 5, 8]]
-    goalState = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
-    aStar(puzzle, goalState, MHDHeuristic)
-    #uniformCostSearch(puzzle, goalState)
+    # choice = input("Welcome to my 170 8-Puzzle Solver. Type '1' to use a default puzzle, or '2' to create your own. ")
+    #
+    # if choice == 1:
+    #     diff_level = input("Please enter a difficulty level for your default puzzle")
+    #     if diff_level == 1:
+    #         print "You chose the trivial level"
+    #         puzzle = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+    #     elif diff_level == 2:
+    #         print "You chose the very easy level"
+    #         puzzle = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
+    #     elif diff_level == 3:
+    #         print "You chose the easy level"
+    #         puzzle = [[1, 2, 0], [4, 5, 3], [7, 8, 6]]
+    #     elif diff_level == 4:
+    #         print "You chose the doable level"
+    #         puzzle = [[0, 1, 2], [4, 5, 3], [7, 8, 6]]
+    #     elif diff_level == 5:
+    #         print "You chose the oh boy level"
+    #         puzzle = [[8, 7, 1], [6, 0, 2], [5, 4, 3]]
 
+    # if choice == 2:
+    #     print "Enter your puzzle, using a zero to represent the blank. Please only enter valid 8-puzzles. Enter the puzzle delimiting the numbers with a space. RET only when finished."
+    #     first_row, second_row, third_row, puzzle = [], [], [], []
+    #     print "Enter the first row: "
+    #     index0,index1,index2=map(int,raw_input().split())
+    #     first_row.append(index0)
+    #     first_row.append(index1)
+    #     first_row.append(index2)
+    #
+    #     print "Enter the second row: "
+    #     index0,index1,index2=map(int,raw_input().split())
+    #     second_row.append(index0)
+    #     second_row.append(index1)
+    #     second_row.append(index2)
+    #
+    #     print "Enter the third row: "
+    #     index0,index1,index2=map(int,raw_input().split())
+    #     third_row.append(index0)
+    #     third_row.append(index1)
+    #     third_row.append(index2)
+    #
+    #     puzzle.append(first_row)
+    #     puzzle.append(second_row)
+    #     puzzle.append(third_row)
+    #
+    #     algorithm_choice = input("Select algorithm. (1) for Uniform Cost Search, (2) for the Misplaced Tile Heuristic, or (3) the Manhattan Distance Heuristic.")
+
+
+    #puzzle = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+    #puzzle = [[1, 2, 3], [4, 5, 6], [7, 0, 8]]
+    #puzzle = [[1, 2, 0], [4, 5, 3], [7, 8, 6]]
+    #puzzle = [[0, 1, 2], [4, 5, 3], [7, 8, 6]]
+
+    #puzzle = [[0, 1, 3], [4, 2, 5], [7, 8, 6]]
+    #puzzle = [[4, 1, 3], [2, 8, 5], [7, 0, 6]]
+    #puzzle = [[0, 2, 3], [1, 5, 6], [4, 7, 8]]
+    #puzzle = [[1, 3, 0], [4, 2, 5], [7, 8, 6]]
+    #puzzle = [[1, 2, 3], [7, 4, 5], [0, 8, 6]]
+
+    puzzle = [[1, 2, 3], [4, 8, 0], [7, 6, 5]]
+
+    #puzzle = [[8, 7, 1], [6, 0, 2], [5, 4, 3]]
+    goalState = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+    #uniformCostSearch(puzzle, goalState)
+    #aStar(puzzle, goalState, MTHeuristic)
+    aStar(puzzle, goalState, MHDHeuristic)
 
 if __name__ == "__main__":
     main()
