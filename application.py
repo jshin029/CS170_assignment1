@@ -39,37 +39,35 @@ def uniformCostSearch(puzzle, goalState):
 
         if currentPuzzle == goalState:
             print "maximum queue size: ", maxQ
+            print "number of nodes expanded: ", expanded
             return
 
         print "The best state to expand with a g(n) = ", depth, " is..."
         print currentPuzzle[0]
         print currentPuzzle[1]
         print currentPuzzle[2], "Expanding this node..."
+        expanded += 1
 
         #check if space can move left
         if (index_col - 1) >= 0:
-            expanded += 1
             temp = copy.deepcopy(currentPuzzle)
             temp[index_row][index_col], temp[index_row][index_col-1] = temp[index_row][index_col-1], temp[index_row][index_col]
             puzzleQ.put(temp)
 
         #check if space can move right
         if (index_col + 1) < row:
-            expanded += 1
             temp = copy.deepcopy(currentPuzzle)
             temp[index_row][index_col], temp[index_row][index_col+1] = temp[index_row][index_col+1], temp[index_row][index_col]
             puzzleQ.put(temp)
 
         #check if space can move up
         if (index_row - 1) >= 0:
-            expanded += 1
             temp = copy.deepcopy(currentPuzzle)
             temp[index_row][index_col], temp[index_row-1][index_col] = temp[index_row-1][index_col], temp[index_row][index_col]
             puzzleQ.put(temp)
 
         #check if space can move down
         if (index_row + 1) < row:
-            expanded += 1
             temp = copy.deepcopy(currentPuzzle)
             temp[index_row][index_col], temp[index_row+1][index_col] = temp[index_row+1][index_col], temp[index_row][index_col]
             puzzleQ.put(temp)
